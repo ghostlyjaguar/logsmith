@@ -83,6 +83,7 @@ generated_logs/
 **Global options**
 - `--out_dir PATH` output directory (default: `./generated_logs`)
 - `--seed INT` random seed for reproducible output
+- If you do not provide `--seed`, each run produces different randomized logs.
 - `--timeframe_days INT` timestamps within last N days (default: 30)
 
 **Generate options**
