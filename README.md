@@ -65,7 +65,8 @@ python logsmith.py generate --log windows_security=50 --log apache_access=200 --
 ## What gets created
 
 - A folder named `generated_logs`
-- One subfolder per log type
+- One file per log type
+- Optional: a `consolidated_logs.log` file that combines all generated logs (`--consolidate`)
 - A `MANIFEST.json` describing exactly what was generated
 - Every log line is labeled `SYNTHETIC`
 
@@ -74,8 +75,9 @@ python logsmith.py generate --log windows_security=50 --log apache_access=200 --
 ```
 generated_logs/
   MANIFEST.json
-  windows_security/windows_security.log
-  apache_access/apache_access.log
+  consolidated_logs.log
+  windows_security.log
+  apache_access.log
 ```
 
 ## Helpful options
@@ -89,6 +91,7 @@ generated_logs/
 **Generate options**
 - `--log TYPE=COUNT` repeatable log type selection
 - `--all COUNT` generate all log types with the same count
+- `--consolidate` write `consolidated_logs.log` with all generated logs
 - `--zip` zip the output directory when done
 
 ## Common student tasks
