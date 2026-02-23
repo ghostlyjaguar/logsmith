@@ -13,6 +13,7 @@ from generators import LogType, get_log_types
 
 TOOL_VERSION = "1.0.0"
 DISCLAIMER = "Synthetic logs generated for educational purposes."
+CONSOLIDATED_FILENAME = "consolidated_logs.log"
 
 
 @dataclass
@@ -122,13 +123,19 @@ def _validate_count(path: Path, expected: int, is_csv: bool) -> None:
 def _generate_one(log_type: LogType, count: int, rnd: random.Random, timeframe_days: int, out_dir: Path) -> GenerationResult:
     lines = log_type.generator(count, rnd, timeframe_days)
     file_name = f"{log_type.name}.{log_type.extension}"
-    file_path = out_dir / log_type.name / file_name
+    file_path = out_dir / file_name
     _write_lines(file_path, lines)
     _validate_count(file_path, count, log_type.extension == "csv")
     return GenerationResult(log_type=log_type, count=count, file_path=file_path)
 
 
-def _write_manifest(out_dir: Path, results: list[GenerationResult], seed: int | None, timeframe_days: int) -> Path:
+def _write_manifest(
+    out_dir: Path,
+    results: list[GenerationResult],
+    seed: int | None,
+    timeframe_days: int,
+    consolidated_path: Path | None,
+) -> Path:
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "tool_version": TOOL_VERSION,
@@ -144,8 +151,31 @@ def _write_manifest(out_dir: Path, results: list[GenerationResult], seed: int | 
             for r in results
         ],
     }
+    if consolidated_path is not None:
+        manifest["consolidated_file"] = str(consolidated_path.relative_to(out_dir))
     path = out_dir / "MANIFEST.json"
     path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    return path
+
+
+def _write_consolidated(out_dir: Path, results: list[GenerationResult]) -> Path:
+    path = out_dir / CONSOLIDATED_FILENAME
+    header = [
+        f"# {DISCLAIMER}",
+        "# Consolidated log output (mixed formats).",
+        f"# Generated at {datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z')}",
+    ]
+    with path.open("w", encoding="utf-8", newline="\n") as out_f:
+        for line in header:
+            out_f.write(line)
+            out_f.write("\n")
+        for res in results:
+            out_f.write(f"===== BEGIN {res.log_type.name} ({res.file_path.name}) =====\n")
+            with res.file_path.open("r", encoding="utf-8") as in_f:
+                for line in in_f:
+                    out_f.write(line.rstrip("\n"))
+                    out_f.write("\n")
+            out_f.write(f"===== END {res.log_type.name} ({res.file_path.name}) =====\n")
     return path
 
 
@@ -179,7 +209,8 @@ def run_generate(args: argparse.Namespace, types: dict[str, LogType]) -> None:
     for name, count in selected.items():
         results.append(_generate_one(types[name], count, rnd, args.timeframe_days, out_dir))
 
-    manifest_path = _write_manifest(out_dir, results, args.seed, args.timeframe_days)
+    consolidated_path = _write_consolidated(out_dir, results) if args.consolidate else None
+    manifest_path = _write_manifest(out_dir, results, args.seed, args.timeframe_days, consolidated_path)
     zip_path = _zip_output(out_dir) if args.zip else None
 
     print(DISCLAIMER)
@@ -187,6 +218,8 @@ def run_generate(args: argparse.Namespace, types: dict[str, LogType]) -> None:
     for res in results:
         print(f"- {res.log_type.name}: {res.count} lines -> {res.file_path}")
     print(f"Manifest: {manifest_path}")
+    if consolidated_path:
+        print(f"Consolidated: {consolidated_path}")
     if zip_path:
         print(f"Zip archive: {zip_path}")
 
@@ -202,7 +235,8 @@ def run_wizard(args: argparse.Namespace, types: dict[str, LogType]) -> None:
     for name, count in selected.items():
         results.append(_generate_one(types[name], count, rnd, args.timeframe_days, out_dir))
 
-    manifest_path = _write_manifest(out_dir, results, args.seed, args.timeframe_days)
+    consolidated_path = _write_consolidated(out_dir, results) if args.consolidate else None
+    manifest_path = _write_manifest(out_dir, results, args.seed, args.timeframe_days, consolidated_path)
     zip_path = _zip_output(out_dir) if args.zip else None
 
     print(DISCLAIMER)
@@ -210,6 +244,8 @@ def run_wizard(args: argparse.Namespace, types: dict[str, LogType]) -> None:
     for res in results:
         print(f"- {res.log_type.name}: {res.count} lines -> {res.file_path}")
     print(f"Manifest: {manifest_path}")
+    if consolidated_path:
+        print(f"Consolidated: {consolidated_path}")
     if zip_path:
         print(f"Zip archive: {zip_path}")
 
@@ -219,6 +255,7 @@ def build_parser() -> argparse.ArgumentParser:
     parent.add_argument("--out_dir", help="Output directory (default: ./generated_logs)")
     parent.add_argument("--seed", type=int, help="Random seed for reproducible output")
     parent.add_argument("--timeframe_days", type=int, default=30, help="Days back for timestamps (default: 30)")
+    parent.add_argument("--consolidate", action="store_true", help="Write consolidated_logs.log with all generated logs")
 
     parser = argparse.ArgumentParser(
         prog="logsmith",
@@ -272,10 +309,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-
-
-
-
-
-
