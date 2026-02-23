@@ -6,24 +6,35 @@ import random
 import uuid
 
 
-HOSTNAMES = [
+WINDOWS_HOSTS = [
+    "win10-lab",
+    "win11-lab",
+]
+
+LINUX_HOSTS = [
     "web01",
     "web02",
     "db01",
     "db02",
-    "fw01",
-    "win10-lab",
-    "win11-lab",
-    "k8s-node1",
-    "k8s-node2",
     "app01",
     "app02",
-    "esxi01",
-    "router1",
-    "switch1",
 ]
 
-USERNAMES = ["admin", "root", "jdoe", "svc_app", "alice", "bob", "svc_backup"]
+WEB_HOSTS = ["web01", "web02"]
+APP_HOSTS = ["app01", "app02"]
+
+MYSQL_HOSTS = ["db02"]
+MSSQL_HOSTS = ["db01"]
+
+NETWORK_HOSTS = ["fw01", "router1", "switch1"]
+ESXI_HOSTS = ["esxi01"]
+K8S_HOSTS = ["k8s-node1", "k8s-node2"]
+
+ALL_METRIC_HOSTS = WINDOWS_HOSTS + LINUX_HOSTS + K8S_HOSTS + ESXI_HOSTS
+
+WINDOWS_USERS = ["Administrator", "SYSTEM", "jdoe", "alice", "bob", "svc_app", "svc_backup"]
+LINUX_USERS = ["root", "admin", "jdoe", "alice", "bob", "svc_app", "svc_backup"]
+APP_USERS = ["jdoe", "alice", "bob", "svc_app"]
 
 HTTP_METHODS = ["GET", "POST", "PUT", "DELETE"]
 URL_PATHS = ["/", "/login", "/api/v1/items", "/admin", "/health", "/static/app.js"]
@@ -34,6 +45,7 @@ USER_AGENTS = [
 ]
 
 SERVICES = ["sshd", "nginx", "apache2", "mysql", "docker", "kubelet", "cron"]
+WINDOWS_SERVICES = ["W3SVC", "IISADMIN", "WinRM", "Spooler", "Schedule", "BITS", "LanmanServer"]
 
 LEVELS = ["INFO", "WARN", "ERROR", "DEBUG"]
 
@@ -85,12 +97,56 @@ def choose(rnd: random.Random, items: list[str]) -> str:
     return rnd.choice(items)
 
 
-def random_hostname(rnd: random.Random) -> str:
-    return choose(rnd, HOSTNAMES)
+def random_windows_host(rnd: random.Random) -> str:
+    return choose(rnd, WINDOWS_HOSTS)
 
 
-def random_username(rnd: random.Random) -> str:
-    return choose(rnd, USERNAMES)
+def random_linux_host(rnd: random.Random) -> str:
+    return choose(rnd, LINUX_HOSTS)
+
+
+def random_web_host(rnd: random.Random) -> str:
+    return choose(rnd, WEB_HOSTS)
+
+
+def random_app_host(rnd: random.Random) -> str:
+    return choose(rnd, APP_HOSTS)
+
+
+def random_mysql_host(rnd: random.Random) -> str:
+    return choose(rnd, MYSQL_HOSTS)
+
+
+def random_mssql_host(rnd: random.Random) -> str:
+    return choose(rnd, MSSQL_HOSTS)
+
+
+def random_network_host(rnd: random.Random) -> str:
+    return choose(rnd, NETWORK_HOSTS)
+
+
+def random_esxi_host(rnd: random.Random) -> str:
+    return choose(rnd, ESXI_HOSTS)
+
+
+def random_k8s_host(rnd: random.Random) -> str:
+    return choose(rnd, K8S_HOSTS)
+
+
+def random_metric_host(rnd: random.Random) -> str:
+    return choose(rnd, ALL_METRIC_HOSTS)
+
+
+def random_windows_user(rnd: random.Random) -> str:
+    return choose(rnd, WINDOWS_USERS)
+
+
+def random_linux_user(rnd: random.Random) -> str:
+    return choose(rnd, LINUX_USERS)
+
+
+def random_app_user(rnd: random.Random) -> str:
+    return choose(rnd, APP_USERS)
 
 
 def random_private_ip(rnd: random.Random) -> str:
@@ -114,6 +170,19 @@ def random_ip(rnd: random.Random) -> str:
 def random_port(rnd: random.Random) -> int:
     common = [22, 53, 80, 443, 3389, 3306, 1433, 8080, 8443]
     return rnd.choice(common + [rnd.randint(1024, 65535)])
+
+
+def random_ephemeral_port(rnd: random.Random) -> int:
+    return rnd.randint(49152, 65535)
+
+
+def random_service_port(rnd: random.Random, proto: str) -> int:
+    proto = proto.upper()
+    if proto == "UDP":
+        ports = [53, 123, 161, 500, 514, 1900, 4500]
+        return rnd.choice(ports)
+    ports = [22, 80, 443, 3389, 3306, 1433, 8080, 8443]
+    return rnd.choice(ports)
 
 
 def random_protocol(rnd: random.Random) -> str:
