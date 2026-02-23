@@ -1,6 +1,6 @@
 # Logsmith (Student-Friendly Synthetic Log Generator)
 
-Logsmith creates **synthetic** cybersecurity logs for learning and practice. It does not create real logs. Every log line is labeled `SYNTHETIC` to prevent misuse.
+Logsmith creates **synthetic** cybersecurity logs for learning and practice. It does not create real logs. Each log includes a synthetic marker (see "Synthetic marker" below) to prevent misuse.
 
 If you are new to the command line, this README is designed to walk you through the basics in small steps.
 
@@ -68,7 +68,28 @@ python logsmith.py generate --log windows_security=50 --log apache_access=200 --
 - One file per log type
 - Optional: a `consolidated_logs.log` file that combines all generated logs (`--consolidate`)
 - A `MANIFEST.json` describing exactly what was generated
-- Every log line is labeled `SYNTHETIC`
+- Each log line includes a synthetic marker (see below)
+
+## Default lab topology (used for hostnames)
+
+- Windows: `win10-lab`, `win11-lab`
+- Linux: `web01`, `web02`, `db01`, `db02`, `app01`, `app02`
+- Network: `fw01`, `router1`, `switch1`
+- ESXi: `esxi01`
+- Kubernetes nodes: `k8s-node1`, `k8s-node2`
+
+Each log source uses only plausible hosts (e.g., Windows logs only on Windows hosts).
+
+## Timestamps
+
+- All timestamps are generated in UTC.
+- Syslog-style lines use RFC3164 format (no year/timezone). Other formats are ISO8601 or source-typical.
+
+## Synthetic marker
+
+- Structured logs include `synthetic: true`.
+- Text logs include `[SYNTHETIC]` inside the message field without breaking standard formats.
+- Access logs include `SyntheticLog` in the User-Agent field.
 
 ## Output example
 
