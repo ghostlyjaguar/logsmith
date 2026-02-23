@@ -1,97 +1,43 @@
-# Logsmith (Student-Friendly Synthetic Log Generator)
+# Logsmith
+Student-friendly synthetic cybersecurity log generator for labs, demos, and automated testing.
 
-Logsmith creates **synthetic** cybersecurity logs for learning and practice. It does not create real logs. Each log includes a synthetic marker (see "Synthetic marker" below) to prevent misuse.
-
-If you are new to the command line, this README is designed to walk you through the basics in small steps.
+Logsmith generates **synthetic** cybersecurity logs for learning and practice. It does not create real logs. Every generated log line includes a **synthetic marker** (see "Synthetic marker" below) to reduce misuse and make datasets safe to share.
 
 **Who this is for**
 - Students learning SOC, SIEM, or incident response basics
 - Instructors who need safe practice data
 - Anyone who wants example logs without privacy concerns
 
-## 1. Install Python (one-time)
+## Use cases
+- SOC / SIEM / incident-response training data (safe classroom datasets)
+- Demo data for dashboards without using production logs
+- CI tests for log parsers, ingest pipelines, and detection content
+- Benchmark datasets for AI/agent log summarization and correlation (seeded + manifested)
 
-You need **Python 3.11**.
-
-1. Install Python 3.11 from the official site.
-2. Open **Command Prompt** (Windows) or **Terminal** (Mac/Linux).
-3. Check your version:
-
-```bat
-python --version
-```
-
-You should see something like `Python 3.11.x`.
-
-## 2. Open the project folder
-
-Move into the folder where you downloaded Logsmith.
-
-Windows example:
-
-```bat
-cd C:\path\to\logsmith
-```
-
-Mac/Linux example:
+## Quickstart (recommended)
+From the repo root (where `logsmith.py` is):
 
 ```bash
-cd /path/to/logsmith
-```
-
-## 3. First run (recommended)
-
-The `wizard` asks questions and helps you choose log types.
-
-```bash
-python logsmith.py wizard
-```
-
-Follow the prompts to pick log types and counts.
-
-## 4. Common commands
-
-```bash
+# See supported log types
 python logsmith.py list
+
+# Interactive wizard (beginner-friendly)
 python logsmith.py wizard
+
+# Scripted generation (example)
 python logsmith.py generate --log windows_security=50 --log apache_access=200 --seed 7 --zip
 ```
 
-**What these do**
-- `list` shows all available log types.
-- `wizard` is interactive and beginner friendly.
-- `generate` is for quick, scripted runs.
-
 ## What gets created
 
-- A folder named `generated_logs`
-- One file per log type
-- Optional: a `consolidated_logs.log` file that combines all generated logs (`--consolidate`)
-- A `MANIFEST.json` describing exactly what was generated
-- Each log line includes a synthetic marker (see below)
+Default output is a folder named `generated_logs/` containing:
 
-## Default lab topology (used for hostnames)
+- One file per selected log type
+- Optional: `consolidated_logs.log` combining all generated logs (`--consolidate`)
+- `MANIFEST.json` describing exactly what was generated (types, counts, seed, timing)
+- Optional: zipped output directory (`--zip`)
 
-- Windows: `win10-lab`, `win11-lab`
-- Linux: `web01`, `web02`, `db01`, `db02`, `app01`, `app02`
-- Network: `fw01`, `router1`, `switch1`
-- ESXi: `esxi01`
-- Kubernetes nodes: `k8s-node1`, `k8s-node2`
-
-Each log source uses only plausible hosts (e.g., Windows logs only on Windows hosts).
-
-## Timestamps
-
-- All timestamps are generated in UTC.
-- Syslog-style lines use RFC3164 format (no year/timezone). Other formats are ISO8601 or source-typical.
-
-## Synthetic marker
-
-- Structured logs include `synthetic: true`.
-- Text logs include `[SYNTHETIC]` inside the message field without breaking standard formats.
-- Access logs include `SyntheticLog` in the User-Agent field.
-
-## Output example
+**Example output:**
 
 ```
 generated_logs/
@@ -101,45 +47,129 @@ generated_logs/
   apache_access.log
 ```
 
+## Synthetic marker
+
+- Structured logs include `synthetic: true`.
+- Text logs include `[SYNTHETIC]` inside the message field without breaking standard formats.
+- Access logs include `SyntheticLog` in the User-Agent field.
+
+## Using Logsmith with AI/agent workflows
+
+Logsmith can generate controlled datasets (seeded + manifested) for evaluating log summarizers, correlation agents, and alert triage workflows without using sensitive production logs.
+
+## Beginner walkthrough (install + first run)
+
+If you are new to the command line, this section walks you through the basics in small steps.
+
+### 1. Install Python (one-time)
+
+You need Python 3.11.
+
+1. Install Python 3.11 from the [official site](https://www.python.org/downloads/).
+2. Open Command Prompt (Windows) or Terminal (Mac/Linux).
+3. Check your version:
+
+```bash
+python --version
+```
+
+You should see something like `Python 3.11.x`.
+
+### 2. Open the project folder
+
+Move into the folder where you downloaded Logsmith.
+
+**Windows example:**
+```bash
+cd C:\path\to\logsmith
+```
+
+**Mac/Linux example:**
+```bash
+cd /path/to/logsmith
+```
+
+### 3. First run (recommended)
+
+The wizard asks questions and helps you choose log types.
+
+```bash
+python logsmith.py wizard
+```
+
+Follow the prompts to pick log types and counts.
+
+### 4. Common commands
+
+```bash
+python logsmith.py list
+python logsmith.py wizard
+python logsmith.py generate --log windows_security=50 --log apache_access=200 --seed 7 --zip
+```
+
+What these do:
+- `list` shows all available log types.
+- `wizard` is interactive and beginner friendly.
+- `generate` is for quick, scripted runs.
+
+## Default lab topology (used for hostnames)
+
+- **Windows:** `win10-lab`, `win11-lab`
+- **Linux:** `web01`, `web02`, `db01`, `db02`, `app01`, `app02`
+- **Network:** `fw01`, `router1`, `switch1`
+- **ESXi:** `esxi01`
+- **Kubernetes nodes:** `k8s-node1`, `k8s-node2`
+
+Each log source uses only plausible hosts (e.g., Windows logs only on Windows hosts).
+
+## Timestamps
+
+- All timestamps are generated in UTC.
+- Syslog-style lines use RFC3164 format (no year/timezone). Other formats are ISO8601 or source-typical.
+
 ## Helpful options
 
-**Global options**
-- `--out_dir PATH` output directory (default: `./generated_logs`)
-- `--seed INT` random seed for reproducible output
-- If you do not provide `--seed`, each run produces different randomized logs.
-- `--timeframe_days INT` timestamps within last N days (default: 30)
+**Global options:**
 
-**Generate options**
-- `--log TYPE=COUNT` repeatable log type selection
-- `--all COUNT` generate all log types with the same count
-- `--consolidate` write `consolidated_logs.log` with all generated logs
-- `--zip` zip the output directory when done
+| Option | Description |
+|---|---|
+| `--out_dir PATH` | Output directory (default: `./generated_logs`) |
+| `--seed INT` | Random seed for reproducible output |
+| `--timeframe_days INT` | Timestamps within last N days (default: 30) |
+
+If you do not provide `--seed`, each run produces different randomized logs.
+
+**Generate options:**
+
+| Option | Description |
+|---|---|
+| `--log TYPE=COUNT` | Repeatable log type selection |
+| `--all COUNT` | Generate all log types with the same count |
+| `--consolidate` | Write `consolidated_logs.log` with all generated logs |
+| `--zip` | Zip the output directory when done |
 
 ## Common student tasks
 
-**Make 100 Windows logs**
-
+**Make 100 Windows logs:**
 ```bash
 python logsmith.py generate --log windows_security=100
 ```
 
-**Generate all log types (25 each)**
-
+**Generate all log types (25 each):**
 ```bash
 python logsmith.py generate --all 25
 ```
 
-**Repeat the same data for a lab**
-
+**Repeat the same data for a lab:**
 ```bash
 python logsmith.py generate --log apache_access=50 --seed 42
 ```
 
 ## Troubleshooting
 
-- **"python" not found**: Make sure Python 3.11 is installed and added to PATH.
-- **Wrong Python version**: Run `python --version` and confirm 3.11.x.
-- **Permission errors**: Run the command from a folder you own, like your Desktop.
+- **"python" not found:** Make sure Python 3.11 is installed and added to PATH.
+- **Wrong Python version:** Run `python --version` and confirm `3.11.x`.
+- **Permission errors:** Run the command from a folder you own, like your Desktop.
 
 ## Notes for teachers
 
